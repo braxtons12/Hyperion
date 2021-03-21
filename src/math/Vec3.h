@@ -168,7 +168,18 @@ namespace math {
 		[[nodiscard]] inline static constexpr auto random_in_unit_sphere() noexcept -> Vec3<TT> {
 			do {
 				auto val = random<TT>(narrow_cast<TT>(-1), narrow_cast<TT>(1));
-				if(val.magnitude_squared() < narrow_cast<TT>(1)) {
+				if(narrow_cast<TT>(val.magnitude_squared()) < narrow_cast<TT>(1)) {
+					return val;
+				}
+			} while(true);
+		}
+
+		template<FloatingPoint TT = float>
+		[[nodiscard]] inline static constexpr auto random_in_unit_disk() noexcept -> Vec3<TT> {
+			do {
+				auto val = random(narrow_cast<TT>(-1), narrow_cast<TT>(1));
+				val.z() = narrow_cast<TT>(0);
+				if(narrow_cast<TT>(val.magnitude_squared()) < narrow_cast<TT>(1)) {
 					return val;
 				}
 			} while(true);

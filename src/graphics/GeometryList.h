@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <pthread.h>
 #include <vector>
 
 #include "../base/StandardIncludes.h"
@@ -11,7 +10,7 @@
 namespace graphics {
 
 	template<FloatingPoint T = float>
-	class GeometryList : public Geometry<T> {
+	class GeometryList final : public Geometry<T> {
 		using Geometry = Geometry<T>;
 		using Ray = Ray<T>;
 		using HitRecord = HitRecord<T>;
@@ -23,6 +22,7 @@ namespace graphics {
 		}
 		constexpr GeometryList(const GeometryList& list) noexcept = default;
 		constexpr GeometryList(GeometryList&& list) noexcept = default;
+		constexpr ~GeometryList() noexcept final = default;
 
 		inline constexpr auto clear() noexcept -> void {
 			m_geometries.clear();

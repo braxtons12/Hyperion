@@ -49,37 +49,89 @@ color_at(const Ray& ray, const GeometryList& geometries, size_t depth) noexcept 
 	return (1.0F - length) * Color(1.0F, 1.0F, 1.0F) + length * Color(0.5F, 0.7F, 1.0F);
 }
 
+inline static auto random_scene() noexcept -> GeometryList {
+	GeometryList list;
+
+	// ground material
+	list.add<Sphere>(
+		std::make_unique<Sphere>(Point3(0.0F, -1000.0F, 0.0F),
+								 1000.0F,
+								 std::make_unique<Lambertian>(Color(0.5F, 0.5F, 0.5F))));
+
+	for(auto a = -11; a < 11; ++a) {
+		for(auto b = -11; b < 11; ++b) {
+			auto choose_mat = random_value<float>();
+			auto center = Point3(narrow_cast<float>(a) + 0.9F * random_value<float>(),
+								 0.2F,
+								 narrow_cast<float>(b) + 0.9F * random_value<float>());
+
+			if((center - Point3(4.0F, 0.2F, 0.0F)).as_vec().magnitude() > 0.9F) {
+				if(choose_mat < 0.8F) {
+					auto albedo = Color(Vec3<float>::random()) * Color(Vec3<float>::random());
+					list.add<Sphere>(
+						std::make_unique<Sphere>(center,
+												 0.2F,
+												 std::make_unique<Lambertian>(albedo)));
+				}
+				else if(choose_mat < 0.95F) {
+					auto albedo = Color(Vec3<float>::random(0.5F, 1.0F));
+					auto fuzz = random_value(0.0F, 0.5F);
+					list.add<Sphere>(
+						std::make_unique<Sphere>(center,
+												 0.2F,
+												 std::make_unique<Metal>(albedo, fuzz)));
+				}
+				else {
+					list.add<Sphere>(
+						std::make_unique<Sphere>(center, 0.2F, std::make_unique<Dielectric>(1.5F)));
+				}
+			}
+		}
+	}
+
+	list.add<Sphere>(std::make_unique<Sphere>(Point3(0.0F, 1.0F, 0.0F),
+											  1.0F,
+											  std::make_unique<Dielectric>(1.5F)));
+
+	list.add<Sphere>(
+		std::make_unique<Sphere>(Point3(-4.0F, 1.0F, 0.0F),
+								 1.0F,
+								 std::make_unique<Lambertian>(Color(0.4F, 0.2F, 0.1F))));
+
+	list.add<Sphere>(
+			std::make_unique<Sphere>(Point3(4.0F, 1.0F, 0.0F),
+									 1.0F,
+									 std::make_unique<Metal>(Color(0.7F, 0.6F, 0.5F), 0.0F)));
+	return list;
+}
+
 auto main(int argc, char** argv) noexcept -> int {
 	std::ignore = argc;
 	std::ignore = argv;
 
 	constexpr auto aspect_ratio = 16.0F / 9.0F;
-	constexpr auto image_width = 800;
+	constexpr auto image_width = 2560;
 	constexpr auto image_height = narrow_cast<int>(narrow_cast<float>(image_width) / aspect_ratio);
-	constexpr auto samples_per_pixel = 50;
+	constexpr auto samples_per_pixel = 200;
 	constexpr auto max_depth = 50ULL;
 	constexpr auto gamma = 1.5F;
+	constexpr auto origin = Point3(13.0F, 2.0F, 3.0F);
+	constexpr auto focal_point = Point3(0.0F, 0.0F, 0.0F);
+	// WHY CAN'T THIS BE CONSTEXPR??? HOW IS THIS NOT A CONSTEXPR EXPRESSION??????
+	const auto focal_length = (origin - focal_point).as_vec().magnitude();
+	//constexpr auto focal_length = 10.0F;
 
-	constexpr Camera camera(aspect_ratio, 2.0F, 1.0F, 90.0F);
+	// WHY CAN'T THIS BE CONSTEXPR??? HOW IS THIS NOT A CONSTEXPR EXPRESSION??????
+	const auto camera = Camera(aspect_ratio,
+							   60.0F,
+							   2.0F,
+							   focal_length,
+							   0.1F,
+							   origin,
+							   focal_point,
+							   Vec3(0.0F, 1.0F, 0.0F));
 
-	GeometryList list(
-		std::make_unique<Sphere>(Point3(0.0F, -100.5F, -1.0F),
-								 100.0F,
-								 std::make_unique<Lambertian>(Color(0.8F, 0.8F, 0.0F))));
-	list.add<Sphere>(
-		std::make_unique<Sphere>(Point3(0.0F, 0.0F, -1.0F),
-								 0.5F,
-								 std::make_unique<Lambertian>(Color(0.1F, 0.2F, 0.5F))));
-	list.add<Sphere>(
-		std::make_unique<Sphere>(Point3(-1.0F, 0.0F, -1.0F),
-								 0.5F,
-								 // std::make_unique<Metal>(Color(0.8F, 0.8F, 0.8F), 0.3F)));
-								 std::make_unique<Dielectric>(1.5F)));
-
-	list.add<Sphere>(
-		std::make_unique<Sphere>(Point3(1.0F, 0.0F, -1.0F),
-								 0.5F,
-								 std::make_unique<Metal>(Color(0.8F, 0.6F, 0.2F), 0.0F)));
+	const auto list = random_scene();
 
 	Ray ray;
 	Color pixel;

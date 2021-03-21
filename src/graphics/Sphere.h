@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_set>
-
 #include "../base/StandardIncludes.h"
 #include "Geometry.h"
 #include "Ray.h"
@@ -105,7 +103,7 @@ namespace graphics {
 		std::unique_ptr<Material> m_material;
 		T m_radius = static_cast<T>(1);
 
-		static const constexpr T HIT_THRESHOLD = narrow_cast<T>(0.002);
+		static const constexpr T HIT_THRESHOLD = narrow_cast<T>(0.005);
 	};
 	IGNORE_PADDING_STOP
 
