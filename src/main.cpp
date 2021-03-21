@@ -8,6 +8,7 @@
 #include "graphics/GeometryList.h"
 #include "graphics/Ray.h"
 #include "graphics/Sphere.h"
+#include "graphics/materials/Dielectric.h"
 #include "graphics/materials/Lambertian.h"
 #include "graphics/materials/Metal.h"
 #include "math/Point3.h"
@@ -23,6 +24,7 @@ using HitRecord = graphics::HitRecord<float>;
 using Sphere = graphics::Sphere<float>;
 using Lambertian = graphics::Lambertian<float>;
 using Metal = graphics::Metal<float>;
+using Dielectric = graphics::Dielectric<float>;
 
 inline constexpr auto
 color_at(const Ray& ray, const GeometryList& geometries, size_t depth) noexcept -> Color {
@@ -58,7 +60,7 @@ auto main(int argc, char** argv) noexcept -> int {
 	constexpr auto max_depth = 50ULL;
 	constexpr auto gamma = 1.5F;
 
-	constexpr Camera camera(aspect_ratio, 2.0F, 1.0F);
+	constexpr Camera camera(aspect_ratio, 2.0F, 1.0F, 90.0F);
 
 	GeometryList list(
 		std::make_unique<Sphere>(Point3(0.0F, -100.5F, -1.0F),
@@ -67,13 +69,17 @@ auto main(int argc, char** argv) noexcept -> int {
 	list.add<Sphere>(
 		std::make_unique<Sphere>(Point3(0.0F, 0.0F, -1.0F),
 								 0.5F,
-								 std::make_unique<Lambertian>(Color(0.7F, 0.3F, 0.3F))));
-	list.add<Sphere>(std::make_unique<Sphere>(Point3(-1.0F, 0.0F, -1.0F),
-											  0.5F,
-											  std::make_unique<Metal>(Color(0.8F, 0.8F, 0.8F))));
-	list.add<Sphere>(std::make_unique<Sphere>(Point3(1.0F, 0.0F, -1.0F),
-											  0.5F,
-											  std::make_unique<Metal>(Color(0.8F, 0.6F, 0.2F))));
+								 std::make_unique<Lambertian>(Color(0.1F, 0.2F, 0.5F))));
+	list.add<Sphere>(
+		std::make_unique<Sphere>(Point3(-1.0F, 0.0F, -1.0F),
+								 0.5F,
+								 // std::make_unique<Metal>(Color(0.8F, 0.8F, 0.8F), 0.3F)));
+								 std::make_unique<Dielectric>(1.5F)));
+
+	list.add<Sphere>(
+		std::make_unique<Sphere>(Point3(1.0F, 0.0F, -1.0F),
+								 0.5F,
+								 std::make_unique<Metal>(Color(0.8F, 0.6F, 0.2F), 0.0F)));
 
 	Ray ray;
 	Color pixel;

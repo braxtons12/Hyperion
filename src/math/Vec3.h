@@ -186,6 +186,19 @@ namespace math {
 				*this - narrow_cast<T>(2) * (this->dot_prod(surface_normal) * surface_normal));
 		}
 
+		[[nodiscard]] inline constexpr auto
+		refracted(const Vec3& surface_normal, T eta_external_over_eta_internal) noexcept -> Vec3 {
+			const auto uv = *this;
+			const auto cos_theta = General::min((-uv).dot_prod(surface_normal), narrow_cast<T>(1));
+
+			auto out_perpendicular
+				= eta_external_over_eta_internal * (uv + cos_theta * surface_normal);
+			auto out_parallel = -General::sqrt(General::abs(
+									narrow_cast<T>(1) - out_perpendicular.magnitude_squared()))
+								* surface_normal;
+			return out_perpendicular + out_parallel;
+		}
+
 		constexpr auto operator=(const Vec3& vec) noexcept -> Vec3& = default;
 		constexpr auto operator=(Vec3&& vec) noexcept -> Vec3& = default;
 
